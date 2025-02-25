@@ -1,6 +1,5 @@
 import 'dart:ui';
 
-
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -27,7 +26,6 @@ class StandardPlayer extends StatelessWidget {
 
     double playerArtImageSize =
         size.width - 60; //((size.height < 750) ? 90 : 60);
-    //playerArtImageSize = playerArtImageSize > 350 ? 350 : playerArtImageSize;
     final spaceAvailableForArtImage =
         size.height - (70 + Get.mediaQuery.padding.bottom + 330);
     playerArtImageSize = playerArtImageSize > spaceAvailableForArtImage
@@ -57,8 +55,7 @@ class StandardPlayer extends StatelessWidget {
                 ),
               ),
 
-              /// used to hide queue header when player is minimized
-              /// gradient to used here
+              /// gradient for hiding queue header when player is minimized
               Align(
                 alignment: Alignment.bottomCenter,
                 child: Container(
@@ -90,7 +87,7 @@ class StandardPlayer extends StatelessWidget {
               ? Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    /// Album art with lyrics in .45  of width
+                    /// Album art with lyrics in .45 of width
                     SizedBox(
                       width: size.width * .45,
                       child: Padding(
@@ -125,18 +122,13 @@ class StandardPlayer extends StatelessWidget {
               /// Player content in portrait mode
               Column(
                   children: [
-                    /// Work as top padding depending on the lyrics visibility and screen size
                     Obx(
                       () => playerController.showLyricsflag.value
-                          ? SizedBox(
-                              height: size.height < 750 ? 60 : 90,
-                            )
-                          : SizedBox(
-                              height: size.height < 750 ? 110 : 140,
-                            ),
+                          ? SizedBox(height: size.height < 750 ? 50 : 80)
+                          : SizedBox(height: size.height < 750 ? 90 : 120),
                     ),
 
-                    /// Contains the lyrics switch and album art with lyrics
+                    /// Lyrics Switch & Album Art with Lyrics
                     Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
@@ -148,13 +140,31 @@ class StandardPlayer extends StatelessWidget {
                       ],
                     ),
 
+                    /// Single-Line Lyrics Display (Hidden if no lyrics)
+                    Obx(() {
+                      final lyrics = playerController.currentSong.value?.lyrics?.trim() ?? "";
+                      return AnimatedOpacity(
+                        opacity: lyrics.isNotEmpty ? 1.0 : 0.0,  // Hide when no lyrics
+                        duration: const Duration(milliseconds: 300),
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 20),
+                          child: Text(
+                            lyrics,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            textAlign: TextAlign.center,
+                            style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+                          ),
+                        ),
+                      );
+                    }),
+
                     /// Extra space container
                     Expanded(child: Container()),
 
-                    /// Contains the player controls
+                    /// Player Controls
                     Padding(
-                      padding: EdgeInsets.only(
-                          bottom: 80 + Get.mediaQuery.padding.bottom),
+                      padding: EdgeInsets.only(bottom: 70 + Get.mediaQuery.padding.bottom), // Reduced bottom padding
                       child: Container(
                           constraints: const BoxConstraints(maxWidth: 500),
                           child: const PlayerControlWidget()),
