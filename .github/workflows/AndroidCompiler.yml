@@ -1,0 +1,63 @@
+name: APK Compilation (Android)
+
+on:
+  workflow_dispatch: 
+
+env:
+  JAVA_VERSION: "17.x"
+  FLUTTER_COMMIT: "4cf269e36de2573851eaef3c763994f8f9be494d"
+
+jobs:
+  apk_compilation: 
+    name: "APK Compilation"
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      # Configure Java for Android build
+      - name: Setup Java
+        uses: actions/setup-java@v3
+        with:
+          java-version: ${{ env.JAVA_VERSION }}
+          distribution: 'temurin'
+          cache: "gradle" 
+
+      # Cache Gradle files to speed up builds
+      - name: Cache Gradle Dependencies
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*') }}
+          restore-keys: |
+            ${{ runner.os }}-gradle-
+
+      # Clone and Checkout Specific Flutter Version
+      - name: Setup Flutter from Specific Commit
+        run: |
+          git clone https://github.com/flutter/flutter.git -b stable $GITHUB_WORKSPACE/flutter
+          cd $GITHUB_WORKSPACE/flutter
+          git checkout $FLUTTER_COMMIT
+          echo "$GITHUB_WORKSPACE/flutter/bin" >> $GITHUB_PATH
+
+      # Verify Flutter Version
+      - name: Verify Flutter Version
+        run: flutter --version
+
+      # Install Flutter dependencies
+      - name: Install Flutter Dependencies
+        run: flutter pub get
+
+      # Build APKs
+      - name: Build APKs
+        run: flutter build apk --debug --split-per-abi
+
+      # Upload APKs
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: flutter-apks
+          path: build/app/outputs/flutter-apk/app-armeabi-v7a-debug.apk
